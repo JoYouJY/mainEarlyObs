@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8>
+<meta http-equiv=Content-Type content="text/html; charset=utf-8">
+<title>EARLY ACCESS FARPG</title>
+<link rel="shortcut icon" href=TemplateData/favicon.ico>
+<link rel=apple-touch-icon sizes=180x180 href=TemplateData/apple-touch-icon.png>
+<link rel=icon type=image/png sizes=32x32 href=TemplateData/favicon-32x32.png>
+<link rel=icon type=image/png sizes=16x16 href=TemplateData/favicon-16x16.png>
+<link rel=manifest href=/manifest.json>
+<link rel=stylesheet href=TemplateData/style.css>
+<style>body,html{margin:0;padding:0;height:100%;overflow:hidden}#unity-container{width:100%;height:100vh;overflow:hidden}#unity-iframe{width:100%;height:100%;border:0;display:block;overflow:hidden}#unity-iframe::-webkit-scrollbar{display:none}#unity-iframe{-ms-overflow-style:none;scrollbar-width:none}</style>
+</head>
+<body>
+<div id=unity-container>
+<iframe id=unity-iframe src=game.html></iframe>
+</div>
+<script>var container=document.getElementById("unity-container");var iframe=document.getElementById("unity-iframe");var isFullscreen=false;function toggleFullscreen(){if(!isFullscreen){if(container.requestFullscreen){container.requestFullscreen()}else{if(container.mozRequestFullScreen){container.mozRequestFullScreen()}else{if(container.webkitRequestFullscreen){container.webkitRequestFullscreen()}else{if(container.msRequestFullscreen){container.msRequestFullscreen()}}}}}else{if(document.exitFullscreen){document.exitFullscreen()}else{if(document.mozCancelFullScreen){document.mozCancelFullScreen()}else{if(document.webkitExitFullscreen){document.webkitExitFullscreen()}else{if(document.msExitFullscreen){document.msExitFullscreen()}}}}}}document.addEventListener("fullscreenchange",handleFullscreenChange);document.addEventListener("webkitfullscreenchange",handleFullscreenChange);document.addEventListener("mozfullscreenchange",handleFullscreenChange);document.addEventListener("MSFullscreenChange",handleFullscreenChange);function handleFullscreenChange(){isFullscreen=!!(document.fullscreenElement||document.mozFullScreenElement||document.webkitFullscreenElement||document.msFullscreenElement);if(isFullscreen){iframe.contentWindow.postMessage("enterFullscreen","*")}else{iframe.contentWindow.postMessage("exitFullscreen","*")}}window.addEventListener("message",function(a){if(a.source===iframe.contentWindow){if(a.data==="toggleFullscreen"){toggleFullscreen()}}});</script>
+</body>
+</html>
