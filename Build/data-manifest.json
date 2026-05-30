@@ -1,0 +1,26 @@
+{
+  "version": "1.0.0",
+  "virtualPath": "/Build/build.data",
+  "totalBytes": 227962548,
+  "chunks": [
+    { "path": "/Build/build.data.01", "bytes": 12357970 },
+    { "path": "/Build/build.data.02", "bytes": 12357970 },
+    { "path": "/Build/build.data.03", "bytes": 12357970 },
+    { "path": "/Build/build.data.04", "bytes": 12357970 },
+    { "path": "/Build/build.data.05", "bytes": 12357970 },
+    { "path": "/Build/build.data.06", "bytes": 12357970 },
+    { "path": "/Build/build.data.07", "bytes": 12357970 },
+    { "path": "/Build/build.data.08", "bytes": 12357970 },
+    { "path": "/Build/build.data.09", "bytes": 12357970 },
+    { "path": "/Build/build.data.10", "bytes": 12357970 },
+    { "path": "/Build/build.data.11", "bytes": 12357970 },
+    { "path": "/Build/build.data.12", "bytes": 12357970 },
+    { "path": "/Build/build.data.13", "bytes": 12357970 },
+    { "path": "/Build/build.data.14", "bytes": 12357970 },
+    { "path": "/Build/build.data.15", "bytes": 12357970 },
+    { "path": "/Build/build.data.16", "bytes": 12357970 },
+    { "path": "/Build/build.data.17", "bytes": 12357970 },
+    { "path": "/Build/build.data.18", "bytes": 12357970 },
+    { "path": "/Build/build.data.19", "bytes": 5519088 }
+  ]
+}

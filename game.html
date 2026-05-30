@@ -12,16 +12,43 @@
 <script src=https://cdnjs.cloudflare.com/ajax/libs/ethers/6.9.2/ethers.umd.js></script>
 <meta name=theme-color content=#000000 />
 </head>
-<style>body,html{margin:0;padding:0;height:100%;overflow:hidden}#unity-canvas{width:100%;height:100%;display:block}::-webkit-scrollbar{display:none}html{-ms-overflow-style:none;scrollbar-width:none}#unity-canvas{background-color:rgba(0,0,0,0.5)}</style>
+<style>
+body,html{margin:0;padding:0;height:100%;overflow:hidden}
+#unity-canvas{width:100%;height:100%;display:block}
+::-webkit-scrollbar{display:none}
+html{-ms-overflow-style:none;scrollbar-width:none}
+#unity-canvas{background-color:rgba(0,0,0,0.5)}
+</style>
 <body style=background-color:#000000>
 <div id=debridge-widget-container style=display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1001;background-color:rgba(0,0,0,0.8);padding:20px;border-radius:10px>
 <button onclick=closeDeBridgeWidget() style=position:absolute;top:10px;right:10px;background:0;border:0;color:white;font-size:20px;cursor:pointer>&times;</button>
 <iframe id=debridge-widget-iframe style=width:400px;height:600px;border:0></iframe>
 </div>
 <script type=module src=./index.js></script>
-<script>function clearCache(){o=window.indexedDB||window.mozIndexedDB||window.webkitIndexedDB||window.msIndexedDB;var t={name:"UnityCache",version:3};o.deleteDatabase(t.name);location.reload();}</script>
+<script>
+async function clearCache(){
+  var indexedDBHandle=window.indexedDB||window.mozIndexedDB||window.webkitIndexedDB||window.msIndexedDB;
+  if(indexedDBHandle){indexedDBHandle.deleteDatabase("UnityCache");}
+  if(window.caches){
+    var keys=await caches.keys();
+    await Promise.all(keys.filter(function(key){
+      return key.indexOf("UnityCache")!==-1;
+    }).map(function(key){
+      return caches.delete(key);
+    }));
+  }
+  if(navigator.serviceWorker){
+    var registrations=await navigator.serviceWorker.getRegistrations();
+    await Promise.all(registrations.map(function(registration){
+      return registration.unregister();
+    }));
+  }
+  location.reload();
+}
+</script>
 <div id=unity-container class=unity-desktop>
 <canvas id=unity-canvas width=1920 height=1080></canvas>
+<div id=unity-warning></div>
 <div id=unity-loading-bar style=background:rgba(0,0,0,0)>
 <div class=video-container style=width:100%;height:100%;display:flex;justify-content:center;align-items:center;background:rgba(0,0,0,0)>
 <video src="TemplateData/Characters moving L loading.mp4" autoplay loop muted></video>
@@ -33,21 +60,328 @@
 </div>
 </div>
 </div>
-<script>var chains="fantom";var container=document.querySelector("#unity-container");var canvas=document.querySelector("#unity-canvas");var loadingBar=document.querySelector("#unity-loading-bar");var warningBanner=document.querySelector("#unity-warning");const ASPECT_RATIO=16/9;function resizeCanvas(){var windowWidth=window.innerWidth;var windowHeight=window.innerHeight;var windowRatio=windowWidth/windowHeight;var newWidth,newHeight;if(windowRatio>ASPECT_RATIO){newHeight=windowHeight;newWidth=newHeight*ASPECT_RATIO;}else{newWidth=windowWidth;newHeight=newWidth/ASPECT_RATIO;}
-canvas.style.width=newWidth+"px";canvas.style.height=newHeight+"px";}
-window.addEventListener("resize",resizeCanvas);resizeCanvas();setTimeout(resizeCanvas,2000);</script>
-<script>async function loadAndCombineChunks(chunkUrls){console.log("Starting to load and combine chunks...");const totalChunks=chunkUrls.length;let progressValue=0;const chunks=new Array(totalChunks);const updateProgress=()=>{document.querySelector(".progress").style.setProperty("--progress",`${progressValue}%`);};const chunkPromises=chunkUrls.map((url,index)=>fetch(url).then((response)=>{if(!response.ok){throw new Error(`Failed to load chunk:${url}`);}
-return response.arrayBuffer();}).then((data)=>{chunks[index]=data;progressValue+=100/totalChunks;updateProgress();console.log(`Chunk ${index+1}/${totalChunks}loaded.Progress:${progressValue.toFixed(2)}%`);}));try{await Promise.all(chunkPromises);console.log("All chunks have been successfully loaded.");}catch(error){console.error("Error combining chunks:",error);throw error;}
-const totalSize=chunks.reduce((sum,chunk)=>sum+chunk.byteLength,0);const combinedBuffer=new Uint8Array(totalSize);let offset=0;for(const chunk of chunks){combinedBuffer.set(new Uint8Array(chunk),offset);offset+=chunk.byteLength;}
-const combinedBlob=new Blob([combinedBuffer],{type:"application/octet-stream"});const combinedDataUrl=URL.createObjectURL(combinedBlob);return combinedDataUrl;}</script>
-<script>const isMobile=/iPhone|iPad/i.test(navigator.userAgent);if(isMobile){const messageDiv=document.createElement("div");messageDiv.innerText="⚠️ WARNING: iPhone/iPad's WebKit detected. WebKit's RAM management may terminate the browser if memory usage is too high. Would you like to proceed?\n\n(Android, Windows, MacBook systems are recommended for optimal performance.)";messageDiv.style.position="fixed";messageDiv.style.top="50%";messageDiv.style.left="50%";messageDiv.style.transform="translate(-50%, -50%)";messageDiv.style.padding="20px";messageDiv.style.backgroundColor="#234567";messageDiv.style.color="yellow";messageDiv.style.zIndex="1000";messageDiv.style.borderRadius="5px";messageDiv.style.textAlign="center";const continueButton=document.createElement("button");continueButton.innerText="Proceed Anyway";continueButton.style.marginTop="15px";continueButton.style.padding="10px 20px";continueButton.style.backgroundColor="#ffffff";continueButton.style.color="#234567";continueButton.style.border="none";continueButton.style.borderRadius="5px";continueButton.style.cursor="pointer";messageDiv.appendChild(document.createElement("br"));messageDiv.appendChild(continueButton);document.body.appendChild(messageDiv);continueButton.addEventListener("click",()=>{document.body.removeChild(messageDiv);loadUnity();});}else{loadUnity();}
-function loadUnity(){var container=document.querySelector("#unity-container");var canvas=document.querySelector("#unity-canvas");var loadingBar=document.querySelector("#unity-loading-bar");var warningBanner=document.querySelector("#unity-warning");const progressbar=document.querySelector(".progress");const progressValue=0;progressbar.style.setProperty("--progress",`${progressValue}%`);(async()=>{loadingBar.style.display="block";let combinedDataUrl=null;let buildUrl="Build";let buildDataUrl=buildUrl+"/build.data";try{let response=await fetch(buildDataUrl,{method:"HEAD",cache:"no-store"});if(response.ok){console.log("build.data found, skipping chunking...");combinedDataUrl=buildDataUrl;}else{console.log("build.data not found, proceeding with chunking...");const chunkUrls=["Build/build.data.01","Build/build.data.02","Build/build.data.03","Build/build.data.04","Build/build.data.05","Build/build.data.06","Build/build.data.07","Build/build.data.08","Build/build.data.09","Build/build.data.10","Build/build.data.11","Build/build.data.12","Build/build.data.13","Build/build.data.14","Build/build.data.15","Build/build.data.16","Build/build.data.17","Build/build.data.18","Build/build.data.19"];combinedDataUrl=await loadAndCombineChunks(chunkUrls);}}catch(error){console.error("Error checking build.data, proceeding with chunking:",error);const chunkUrls=["Build/build.data.01","Build/build.data.02","Build/build.data.03","Build/build.data.04","Build/build.data.05","Build/build.data.06","Build/build.data.07","Build/build.data.08","Build/build.data.09","Build/build.data.10","Build/build.data.11","Build/build.data.12","Build/build.data.13","Build/build.data.14","Build/build.data.15","Build/build.data.16","Build/build.data.17","Build/build.data.18","Build/build.data.19"];combinedDataUrl=await loadAndCombineChunks(chunkUrls);}
-console.log("Final data URL for createUnityInstance:",combinedDataUrl);function unityShowBanner(msg,type){function updateBannerVisibility(){warningBanner.style.display=warningBanner.children.length?"block":"none";}
-var div=document.createElement("div");div.innerHTML=msg;warningBanner.appendChild(div);if(type=="error"){div.style="background: red; padding: 10px;";}else{if(type=="warning"){div.style="background: yellow; padding: 10px;";}
-setTimeout(function(){warningBanner.removeChild(div);updateBannerVisibility();},5000);}
-updateBannerVisibility();}
-var loaderUrl=buildUrl+"/Build.loader.js";var config={dataUrl:combinedDataUrl,frameworkUrl:buildUrl+"/Build.framework.js",codeUrl:buildUrl+"/Build.wasm",streamingAssetsUrl:"StreamingAssets",companyName:"Jojo Dream Studio",productName:"FateAdventureRPG",productVersion:"1.0.0",showBanner:unityShowBanner};var script=document.createElement("script");script.src=loaderUrl;script.onload=()=>{createUnityInstance(canvas,config,(progress)=>{}).then((unityInstance)=>{window.unityInstance=unityInstance;loadingBar.style.display="none";}).catch((message)=>{alert(message);});};document.body.appendChild(script);})();}</script>
-<script>let deferredPrompt;window.addEventListener("beforeinstallprompt",(e)=>{e.preventDefault();deferredPrompt=e;});function showInstallPrompt(){if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then((choiceResult)=>{if(choiceResult.outcome==="accepted"){canvas.style.display="block";}else{canvas.style.display="block";}
-deferredPrompt=null;});}}</script>
+<script>
+var chains="fantom";
+var container=document.querySelector("#unity-container");
+var canvas=document.querySelector("#unity-canvas");
+var loadingBar=document.querySelector("#unity-loading-bar");
+var warningBanner=document.querySelector("#unity-warning");
+const ASPECT_RATIO=16/9;
+
+function resizeCanvas(){
+  var windowWidth=window.innerWidth;
+  var windowHeight=window.innerHeight;
+  var windowRatio=windowWidth/windowHeight;
+  var newWidth,newHeight;
+  if(windowRatio>ASPECT_RATIO){
+    newHeight=windowHeight;
+    newWidth=newHeight*ASPECT_RATIO;
+  }else{
+    newWidth=windowWidth;
+    newHeight=newWidth/ASPECT_RATIO;
+  }
+  canvas.style.width=newWidth+"px";
+  canvas.style.height=newHeight+"px";
+}
+
+window.addEventListener("resize",resizeCanvas);
+resizeCanvas();
+setTimeout(resizeCanvas,2000);
+</script>
+<script>
+const UNITY_DATA_URL="/Build/build.data";
+const UNITY_DATA_BYTES=227962548;
+const CHUNK_URLS=[
+  "Build/build.data.01","Build/build.data.02","Build/build.data.03",
+  "Build/build.data.04","Build/build.data.05","Build/build.data.06",
+  "Build/build.data.07","Build/build.data.08","Build/build.data.09",
+  "Build/build.data.10","Build/build.data.11","Build/build.data.12",
+  "Build/build.data.13","Build/build.data.14","Build/build.data.15",
+  "Build/build.data.16","Build/build.data.17","Build/build.data.18",
+  "Build/build.data.19"
+];
+const isAppleWebKitMobile=/iPhone|iPad|iPod/i.test(navigator.userAgent);
+const isMobileDevice=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+const UNITY_DEVICE_PIXEL_RATIO=isMobileDevice?1:(window.devicePixelRatio||1);
+
+function setLoadingProgress(percent){
+  var progressbar=document.querySelector(".progress");
+  if(progressbar){
+    var value=Math.max(0,Math.min(100,percent));
+    progressbar.style.setProperty("--progress",value+"%");
+  }
+}
+
+function showStartupMessage(message,details){
+  loadingBar.style.display="none";
+  var messageDiv=document.createElement("div");
+  messageDiv.style.position="fixed";
+  messageDiv.style.top="50%";
+  messageDiv.style.left="50%";
+  messageDiv.style.transform="translate(-50%, -50%)";
+  messageDiv.style.maxWidth="520px";
+  messageDiv.style.width="calc(100% - 40px)";
+  messageDiv.style.padding="20px";
+  messageDiv.style.backgroundColor="#111";
+  messageDiv.style.color="#fff";
+  messageDiv.style.zIndex="1000";
+  messageDiv.style.border="1px solid #555";
+  messageDiv.style.borderRadius="5px";
+  messageDiv.style.textAlign="center";
+  messageDiv.style.fontFamily="Arial, sans-serif";
+
+  var text=document.createElement("p");
+  text.innerText=message;
+  messageDiv.appendChild(text);
+
+  if(details){
+    var detail=document.createElement("p");
+    detail.innerText=details;
+    detail.style.fontSize="12px";
+    detail.style.color="#bbb";
+    detail.style.wordBreak="break-word";
+    messageDiv.appendChild(detail);
+  }
+
+  var retryButton=document.createElement("button");
+  retryButton.innerText="Retry";
+  retryButton.style.marginTop="12px";
+  retryButton.style.padding="10px 20px";
+  retryButton.style.backgroundColor="#fff";
+  retryButton.style.color="#111";
+  retryButton.style.border="none";
+  retryButton.style.cursor="pointer";
+  retryButton.onclick=function(){location.reload();};
+  messageDiv.appendChild(retryButton);
+  document.body.appendChild(messageDiv);
+}
+
+async function waitForServiceWorkerControl(){
+  if(navigator.serviceWorker.controller){return;}
+  await new Promise(function(resolve){
+    var timeout=setTimeout(resolve,8000);
+    navigator.serviceWorker.addEventListener("controllerchange",function(){
+      clearTimeout(timeout);
+      resolve();
+    },{once:true});
+  });
+}
+
+async function ensureUnityDataWorker(){
+  if(!("serviceWorker" in navigator)){
+    throw new Error("Service Worker is not supported.");
+  }
+  if(location.protocol==="file:"){
+    throw new Error("Service Worker requires an HTTP or HTTPS page.");
+  }
+
+  var registration=await navigator.serviceWorker.register("/unity-data-sw.js",{
+    scope:"/",
+    updateViaCache:"none"
+  });
+  await registration.update();
+  await navigator.serviceWorker.ready;
+  await waitForServiceWorkerControl();
+
+  var response=await fetch(UNITY_DATA_URL,{method:"HEAD",cache:"no-store"});
+  if(!response.ok){
+    throw new Error("Unity data stream responded with "+response.status+".");
+  }
+  var contentLength=response.headers.get("Content-Length");
+  if(contentLength!==String(UNITY_DATA_BYTES)){
+    throw new Error("Unity data stream size mismatch: "+(contentLength||"missing")+".");
+  }
+  if(response.headers.get("Content-Encoding")){
+    throw new Error("Unity data stream must not be content-encoded.");
+  }
+  return true;
+}
+
+async function loadAndCombineChunksForDesktop(chunkUrls){
+  console.warn("Using desktop-only Unity data chunk fallback.");
+  var chunks=[];
+  var loadedChunks=0;
+  for(var i=0;i<chunkUrls.length;i++){
+    var response=await fetch(chunkUrls[i]);
+    if(!response.ok){
+      throw new Error("Failed to load chunk: "+chunkUrls[i]);
+    }
+    var data=await response.arrayBuffer();
+    chunks.push(data);
+    loadedChunks++;
+    setLoadingProgress((loadedChunks/chunkUrls.length)*50);
+  }
+
+  var totalSize=chunks.reduce(function(sum,chunk){return sum+chunk.byteLength;},0);
+  var combinedBuffer=new Uint8Array(totalSize);
+  var offset=0;
+  for(var j=0;j<chunks.length;j++){
+    combinedBuffer.set(new Uint8Array(chunks[j]),offset);
+    offset+=chunks[j].byteLength;
+  }
+  return URL.createObjectURL(new Blob([combinedBuffer],{type:"application/octet-stream"}));
+}
+
+function unityShowBanner(msg,type){
+  if(!warningBanner){
+    console[type==="error"?"error":"warn"](msg);
+    return;
+  }
+  function updateBannerVisibility(){
+    warningBanner.style.display=warningBanner.children.length?"block":"none";
+  }
+  var div=document.createElement("div");
+  div.innerHTML=msg;
+  warningBanner.appendChild(div);
+  if(type=="error"){
+    div.style="background: red; padding: 10px;";
+  }else{
+    if(type=="warning"){
+      div.style="background: yellow; padding: 10px;";
+    }
+    setTimeout(function(){
+      if(div.parentNode){warningBanner.removeChild(div);}
+      updateBannerVisibility();
+    },5000);
+  }
+  updateBannerVisibility();
+}
+
+function bootUnity(dataUrl){
+  var buildUrl="Build";
+  var loaderUrl=buildUrl+"/Build.loader.js";
+  var config={
+    dataUrl:dataUrl,
+    frameworkUrl:buildUrl+"/Build.framework.js",
+    codeUrl:buildUrl+"/Build.wasm",
+    streamingAssetsUrl:"StreamingAssets",
+    companyName:"Jojo Dream Studio",
+    productName:"FateAdventureRPG",
+    productVersion:"1.0.0",
+    devicePixelRatio:UNITY_DEVICE_PIXEL_RATIO,
+    showBanner:unityShowBanner,
+    cacheControl:function(url){
+      var normalized=String(url);
+      if(normalized===dataUrl||normalized.endsWith("/Build/build.data")||normalized.endsWith("Build/build.data")){
+        return "no-store";
+      }
+      return normalized.match(/\.bundle/)?"must-revalidate":"no-store";
+    }
+  };
+  var script=document.createElement("script");
+  script.src=loaderUrl;
+  script.onload=function(){
+    createUnityInstance(canvas,config,function(progress){
+      setLoadingProgress(progress*100);
+    }).then(function(unityInstance){
+      window.unityInstance=unityInstance;
+      loadingBar.style.display="none";
+    }).catch(function(message){
+      showStartupMessage("The game could not finish loading. Please retry, or contact support if it keeps happening.",String(message));
+    });
+  };
+  script.onerror=function(){
+    showStartupMessage("The Unity loader could not be downloaded. Please retry in a moment.");
+  };
+  document.body.appendChild(script);
+}
+
+function releaseUnityResources(){
+  try{
+    if(window.unityInstance&&!window.__unityQuitting){
+      window.__unityQuitting=true;
+      var quitPromise=window.unityInstance.Quit&&window.unityInstance.Quit();
+      if(quitPromise&&quitPromise.catch){
+        quitPromise.catch(function(){});
+      }
+    }
+  }catch(error){
+    console.warn("Unity cleanup failed:",error);
+  }
+  if(canvas){
+    canvas.width=1;
+    canvas.height=1;
+    canvas.style.display="none";
+  }
+}
+
+window.addEventListener("pagehide",releaseUnityResources);
+window.addEventListener("beforeunload",releaseUnityResources);
+
+async function loadUnity(){
+  setLoadingProgress(0);
+  loadingBar.style.display="block";
+  var dataUrl=UNITY_DATA_URL;
+
+  try{
+    await ensureUnityDataWorker();
+    console.log("Unity data stream Service Worker is ready.");
+  }catch(error){
+    console.error("Unity data stream Service Worker failed:",error);
+    if(isMobileDevice){
+      showStartupMessage("The mobile-safe loader could not start on this device. Please retry after clearing browser storage, or contact support with this message.",error.message);
+      return;
+    }
+    try{
+      dataUrl=await loadAndCombineChunksForDesktop(CHUNK_URLS);
+    }catch(fallbackError){
+      showStartupMessage("The desktop fallback loader could not prepare the game data.",fallbackError.message);
+      return;
+    }
+  }
+
+  console.log("Final data URL for createUnityInstance:",dataUrl);
+  bootUnity(dataUrl);
+}
+
+if(isAppleWebKitMobile){
+  var messageDiv=document.createElement("div");
+  messageDiv.innerText="WARNING: iPhone/iPad WebKit detected. WebKit memory management may terminate the browser if memory usage is too high. Would you like to proceed?\n\nAndroid, Windows, and MacBook systems are recommended for optimal performance.";
+  messageDiv.style.position="fixed";
+  messageDiv.style.top="50%";
+  messageDiv.style.left="50%";
+  messageDiv.style.transform="translate(-50%, -50%)";
+  messageDiv.style.padding="20px";
+  messageDiv.style.backgroundColor="#234567";
+  messageDiv.style.color="yellow";
+  messageDiv.style.zIndex="1000";
+  messageDiv.style.borderRadius="5px";
+  messageDiv.style.textAlign="center";
+  var continueButton=document.createElement("button");
+  continueButton.innerText="Proceed Anyway";
+  continueButton.style.marginTop="15px";
+  continueButton.style.padding="10px 20px";
+  continueButton.style.backgroundColor="#ffffff";
+  continueButton.style.color="#234567";
+  continueButton.style.border="none";
+  continueButton.style.borderRadius="5px";
+  continueButton.style.cursor="pointer";
+  messageDiv.appendChild(document.createElement("br"));
+  messageDiv.appendChild(continueButton);
+  document.body.appendChild(messageDiv);
+  continueButton.addEventListener("click",function(){
+    document.body.removeChild(messageDiv);
+    loadUnity();
+  });
+}else{
+  loadUnity();
+}
+</script>
+<script>
+let deferredPrompt;
+window.addEventListener("beforeinstallprompt",function(e){
+  e.preventDefault();
+  deferredPrompt=e;
+});
+function showInstallPrompt(){
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function(){
+      canvas.style.display="block";
+      deferredPrompt=null;
+    });
+  }
+}
+</script>
 </body>
 </html>
