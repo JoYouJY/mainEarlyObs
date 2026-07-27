@@ -102,7 +102,6 @@ const CHUNK_URLS=[
 ];
 const isAppleWebKitMobile=/iPhone|iPad|iPod/i.test(navigator.userAgent);
 const isMobileDevice=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-const UNITY_DEVICE_PIXEL_RATIO=isMobileDevice?1:(window.devicePixelRatio||1);
 
 function setLoadingProgress(percent){
   var progressbar=document.querySelector(".progress");
@@ -258,7 +257,6 @@ function bootUnity(dataUrl){
     companyName:"Jojo Dream Studio",
     productName:"FateAdventureRPG",
     productVersion:"1.0.0",
-    devicePixelRatio:UNITY_DEVICE_PIXEL_RATIO,
     showBanner:unityShowBanner,
     cacheControl:function(url){
       var normalized=String(url);
